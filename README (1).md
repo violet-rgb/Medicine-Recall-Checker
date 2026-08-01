@@ -51,8 +51,8 @@ C:\Program Files\Tesseract-OCR\tesseract.exe --version
 Open PowerShell and run:
 
 ```powershell
-git clone https://github.com/raptor2307/Medicine-Batch.git
-cd Medicine-Batch  (ithu miss akkal)
+git clone 
+cd Medicine-Batch  
 git fetch
 git checkout development
 git pull
