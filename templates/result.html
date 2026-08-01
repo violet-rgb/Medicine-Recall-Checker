@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verification Result - MediRecall</title>
+  <link rel="stylesheet" href="/static/style.css?v=4">
+</head>
+<body>
+  <header class="topbar">
+  <div class="topbar-inner">
+
+    <a href="/" class="btn-ghost">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <path d="m12 19-7-7 7-7"/>
+        <path d="M19 12H5"/>
+      </svg>
+      New check
+    </a>
+
+
+  </div>
+</header>
+
+  <main class="page result-page">
+    {% if error %}
+      <div class="result-card error-card">
+        <span class="error-icon">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+          </svg>
+        </span>
+        <h2>Verification failed</h2>
+        <p>{{ error }}</p>
+        <a href="/" class="btn-primary btn-inline">Try again</a>
+      </div>
+    {% else %}
+      <div class="result-card">
+        <p class="result-eyebrow">Recall Analysis Result</p>
+        <h1 class="medicine-name">{{ analysis.medicine_name }}</h1>
+
+        <div class="status-row">
+          {% if analysis.is_recalled %}
+            <span class="badge recalled" style="background: var(--bad-bg); color: var(--bad-ink); font-weight: 700;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              NSQ
+            </span>
+          {% elif analysis.is_recalled is none %}
+            <span class="badge unknown" style="background: var(--warn-bg); color: var(--warn-ink); font-weight: 700;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              UNKNOWN / UNVERIFIED
+            </span>
+          {% else %}
+            <span class="badge ok" style="background: var(--ok-bg); color: var(--ok-ink); font-weight: 700;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><polyline points="20 6 9 17 4 12"/></svg>
+              NOT IN NSQ
+            </span>
+          {% endif %}
+        </div>
+
+        <section class="result-section">
+          <h3>Batch Details Checked</h3>
+          <table class="details-table">
+            <tr>
+              <td>Batch Number</td>
+              <td class="batch-value">{{ analysis.batch_number or "Not Detected" }}</td>
+            </tr>
+            <tr>
+              <td>Manufacturer</td>
+              <td>{{ analysis.manufacturer or "Not Detected" }}</td>
+            </tr>
+            {% set mfg_date = analysis.mfg_date or (analysis.identity.mfg_date if analysis.identity else none) %}
+            {% set expiry_date = analysis.expiry_date or (analysis.identity.expiry_date if analysis.identity else none) %}
+            {% if mfg_date or expiry_date %}
+              {% if mfg_date %}
+              <tr>
+                <td>Mfg Date</td>
+                <td>{{ mfg_date }}</td>
+              </tr>
+              {% endif %}
+              {% if expiry_date %}
+              <tr>
+                <td>Expiry Date</td>
+                <td>{{ expiry_date }}</td>
+              </tr>
+              {% endif %}
+            {% endif %}
+            <tr>
+              <td>Verification Source</td>
+              <td class="source-value">
+                {% if analysis.source == "internal_database" %}
+                  Internal Database Match
+                {% elif analysis.source == "web_search" %}
+                  Live Web Search Grounding
+                {% elif analysis.source == "batch_not_detected" %}
+                  Batch Not Detected
+                {% else %}
+                  Internal Database (No Match Found)
+                {% endif %}
+              </td>
+            </tr>
+          </table>
+        </section>
+
+        {% if analysis.is_recalled %}
+          <section class="result-section" style="background: #fffcfc; border-left: 4px solid var(--bad-ink); padding: 16px; border-radius: 4px; margin-top: 20px;">
+            <h3 style="color: var(--bad-ink); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              NSQ / Recall Notice Details
+            </h3>
+            <p style="font-size: 15px; margin: 4px 0;"><strong>Reporting Month:</strong> {{ analysis.recall_date or "N/A" }}</p>
+            <p style="font-size: 15px; margin: 4px 0;"><strong>Reporting Agency / Lab:</strong> {{ analysis.recalling_agency or "N/A" }}</p>
+            <p style="font-size: 15px; margin: 4px 0;"><strong>Classification:</strong> {{ analysis.recall_class or "N/A" }}</p>
+            <p style="font-size: 15px; margin: 12px 0 4px; line-height: 1.5;"><strong>NSQ Result / Reason:</strong><br>{{ analysis.recall_reason }}</p>
+            <div style="background: var(--bad-bg); border-radius: 8px; padding: 12px; margin-top: 14px; color: var(--bad-ink);">
+              <h4 style="margin: 0 0 4px; font-weight: 700; font-size: 14px;">Advisory & Recommendation:</h4>
+              <p style="margin: 0; font-size: 14px; line-height: 1.5;">{{ analysis.recommendation }}</p>
+            </div>
+          </section>
+        {% else %}
+          <section class="result-section" style="margin-top: 20px;">
+            <h3>Summary</h3>
+            <p style="line-height: 1.6;">{{ analysis.status_summary }}</p>
+            {% if analysis.source == "batch_not_detected" and analysis.recommendation %}
+              <div style="background: var(--warn-bg); border-left: 4px solid var(--warn-ink); border-radius: 4px; padding: 12px; margin-top: 14px; color: var(--warn-ink);">
+                <strong>What to do next:</strong> {{ analysis.recommendation }}
+              </div>
+            {% endif %}
+            {% if analysis.general_info %}
+              <p style="margin-top: 10px; font-size: 14px; color: var(--ink-soft); line-height: 1.6;">{{ analysis.general_info }}</p>
+            {% endif %}
+          </section>
+        {% endif %}
+      </div>
+
+      {% if ocr_text %}
+      <details class="raw-text">
+        <summary>Detected OCR Packaging Text</summary>
+        <pre>{{ ocr_text }}</pre>
+      </details>
+      {% endif %}
+
+      <div class="actions-row">
+        <a href="/" class="btn-primary btn-inline">Check another batch</a>
+      </div>
+    {% endif %}
+  </main>
+
+  <footer class="footer">
+    <p>{{ analysis.disclaimer if analysis and analysis.disclaimer else "This tool uses AI and OCR and may make mistakes. It is not a substitute for professional medical advice." }}</p>
+  </footer>
+</body>
+</html>
